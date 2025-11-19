@@ -301,20 +301,11 @@ APP_PORT=8080
 
 **Erro**: `The stream or file "/var/www/html/storage/logs/laravel.log" could not be opened`
 
-**Solução**: Execute o script de correção de permissões:
+**Solução**:
 ```bash
-# Opção 1: Usar o script
-docker-compose exec app sh docker/scripts/fix-permissions.sh
-
-# Opção 2: Comandos manuais
 docker-compose exec app chmod -R 775 storage bootstrap/cache
 docker-compose exec app chown -R laravel:laravel storage bootstrap/cache
-
-# Opção 3: Reiniciar o container (ajusta permissões automaticamente)
-docker-compose restart app
 ```
-
-**Nota**: O container ajusta permissões automaticamente ao iniciar. Se o problema persistir, reinicie o container.
 
 #### 3. PostgreSQL não conecta
 
