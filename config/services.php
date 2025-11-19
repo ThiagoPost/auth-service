@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Service URL
+    |--------------------------------------------------------------------------
+    |
+    | URL do serviço de autenticação para validação de tokens.
+    | Usado por outros serviços para validar tokens gerados por este serviço.
+    |
+    */
+
+    'auth_service_url' => env('AUTH_SERVICE_URL', 'http://localhost'),
+
 ];

@@ -27,23 +27,33 @@ class ProfileController extends Controller
     }
 
     /**
-     * Retorna os dados do usuário autenticado
+     * Obter dados do usuário autenticado
      * 
-     * @param Request $request
-     * @return JsonResponse
+     * Retorna os dados completos do usuário atualmente autenticado.
      * 
+     * @group Perfil
      * @authenticated
      * 
-     * @response 200 {
+     * @response 200 scenario="Dados recuperados com sucesso" {
      *   "success": true,
-     *   "message": "Dados do usuário recuperados com sucesso",
+     *   "message": "Dados do usuário recuperados com sucesso.",
      *   "data": {
      *     "user": {
      *       "id": 1,
      *       "name": "João Silva",
-     *       "email": "joao@example.com"
+     *       "email": "joao@example.com",
+     *       "email_verified_at": null,
+     *       "created_at": "2024-01-01T00:00:00.000000Z",
+     *       "updated_at": "2024-01-01T00:00:00.000000Z"
      *     }
      *   },
+     *   "errors": []
+     * }
+     * 
+     * @response 401 scenario="Não autenticado" {
+     *   "success": false,
+     *   "message": "Usuário não autenticado.",
+     *   "data": null,
      *   "errors": []
      * }
      */
@@ -85,24 +95,46 @@ class ProfileController extends Controller
     }
 
     /**
-     * Atualiza o perfil do usuário autenticado
+     * Atualizar perfil do usuário
      * 
-     * @param UpdateProfileRequest $request
-     * @return JsonResponse
+     * Atualiza os dados do perfil do usuário autenticado. Você pode atualizar nome e/ou email.
+     * O email deve ser único no sistema.
      * 
+     * @group Perfil
      * @authenticated
      * 
-     * @response 200 {
+     * @bodyParam name string Nome completo do usuário. Example: João Santos
+     * @bodyParam email string Email do usuário (deve ser único). Example: joao.santos@example.com
+     * 
+     * @response 200 scenario="Perfil atualizado com sucesso" {
      *   "success": true,
-     *   "message": "Perfil atualizado com sucesso",
+     *   "message": "Perfil atualizado com sucesso.",
      *   "data": {
      *     "user": {
      *       "id": 1,
-     *       "name": "João Silva",
-     *       "email": "joao@example.com"
+     *       "name": "João Santos",
+     *       "email": "joao.santos@example.com",
+     *       "email_verified_at": null,
+     *       "created_at": "2024-01-01T00:00:00.000000Z",
+     *       "updated_at": "2024-01-01T00:00:00.000000Z"
      *     }
      *   },
      *   "errors": []
+     * }
+     * 
+     * @response 401 scenario="Não autenticado" {
+     *   "success": false,
+     *   "message": "Usuário não autenticado.",
+     *   "data": null,
+     *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "email": ["Este email já está cadastrado."]
+     *   }
      * }
      */
     public function update(UpdateProfileRequest $request): JsonResponse
@@ -145,25 +177,46 @@ class ProfileController extends Controller
     }
 
     /**
-     * Altera a senha do usuário autenticado
+     * Alterar senha do usuário
      * 
-     * @param ChangePasswordRequest $request
-     * @return JsonResponse
+     * Altera a senha do usuário autenticado. Requer a senha atual para confirmação.
+     * Após alterar a senha, todos os tokens do usuário são revogados por segurança,
+     * sendo necessário fazer login novamente.
      * 
+     * @group Perfil
      * @authenticated
      * 
-     * @response 200 {
+     * @bodyParam current_password string required Senha atual do usuário. Example: OldPassword123!
+     * @bodyParam password string required Nova senha (mínimo 8 caracteres, maiúsculas, minúsculas e números). Example: NewPassword123!
+     * @bodyParam password_confirmation string required Confirmação da nova senha. Example: NewPassword123!
+     * 
+     * @response 200 scenario="Senha alterada com sucesso" {
      *   "success": true,
-     *   "message": "Senha alterada com sucesso",
+     *   "message": "Senha alterada com sucesso. Faça login novamente.",
      *   "data": null,
      *   "errors": []
      * }
      * 
-     * @response 400 {
+     * @response 400 scenario="Senha atual incorreta" {
      *   "success": false,
-     *   "message": "Senha atual incorreta",
+     *   "message": "Senha atual incorreta.",
      *   "data": null,
      *   "errors": []
+     * }
+     * 
+     * @response 401 scenario="Não autenticado" {
+     *   "success": false,
+     *   "message": "Usuário não autenticado.",
+     *   "data": null,
+     *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "password": ["A senha deve ter no mínimo 8 caracteres."]
+     *   }
      * }
      */
     public function changePassword(ChangePasswordRequest $request): JsonResponse

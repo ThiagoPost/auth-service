@@ -14,6 +14,18 @@ done
 
 echo "✅ PostgreSQL está pronto!"
 
+# Ajustar permissões do storage e bootstrap/cache
+echo "🔐 Ajustando permissões..."
+mkdir -p /var/www/html/storage/logs
+mkdir -p /var/www/html/storage/framework/cache
+mkdir -p /var/www/html/storage/framework/sessions
+mkdir -p /var/www/html/storage/framework/views
+mkdir -p /var/www/html/bootstrap/cache
+
+# Ajustar ownership e permissões
+chown -R laravel:laravel /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
+
 # Executar inicialização se necessário
 if [ ! -f "/var/www/html/.docker-initialized" ]; then
     echo "🚀 Executando inicialização..."

@@ -32,6 +32,7 @@ services:
     container_name: laravel_auth_app
     restart: unless-stopped
     working_dir: /var/www/html
+    user: root
     volumes:
       - .:/var/www/html
       - ./storage:/var/www/html/storage
@@ -49,6 +50,13 @@ services:
       - DB_DATABASE=${DB_DATABASE:-laravel_auth}
       - DB_USERNAME=${DB_USERNAME:-laravel_user}
       - DB_PASSWORD=${DB_PASSWORD:-secret}
+    command: >
+      sh -c "
+        mkdir -p /var/www/html/storage/logs /var/www/html/storage/framework/cache /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/bootstrap/cache &&
+        chown -R laravel:laravel /var/www/html/storage /var/www/html/bootstrap/cache &&
+        chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache &&
+        /usr/local/bin/entrypoint.sh php-fpm
+      "
     healthcheck:
       test: ["CMD-SHELL", "php-fpm -t || exit 1"]
       interval: 30s

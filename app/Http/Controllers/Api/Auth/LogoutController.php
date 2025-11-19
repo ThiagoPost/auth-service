@@ -15,18 +15,23 @@ use Illuminate\Support\Facades\Log;
 class LogoutController extends Controller
 {
     /**
-     * Realiza logout do usuário autenticado
+     * Logout do usuário
      * 
-     * Revoga o token de acesso atual do usuário.
-     * 
-     * @param Request $request
-     * @return JsonResponse
+     * Revoga o token de acesso atual do usuário autenticado, invalidando-o para futuras requisições.
+     * Após o logout, o token não poderá mais ser usado para acessar endpoints protegidos.
      * 
      * @authenticated
      * 
-     * @response 200 {
+     * @response 200 scenario="Logout bem-sucedido" {
      *   "success": true,
-     *   "message": "Logout realizado com sucesso",
+     *   "message": "Logout realizado com sucesso.",
+     *   "data": null,
+     *   "errors": []
+     * }
+     * 
+     * @response 401 scenario="Não autenticado" {
+     *   "success": false,
+     *   "message": "Não autenticado.",
      *   "data": null,
      *   "errors": []
      * }
@@ -64,4 +69,3 @@ class LogoutController extends Controller
         }
     }
 }
-

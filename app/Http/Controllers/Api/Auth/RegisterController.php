@@ -25,16 +25,24 @@ class RegisterController extends Controller
     }
 
     /**
-     * Registra um novo usuário no sistema
+     * Registro de novo usuário
      * 
-     * Cria uma nova conta de usuário e retorna um token de autenticação.
+     * Cria uma nova conta de usuário no sistema e retorna automaticamente um token de autenticação.
+     * A senha deve atender aos requisitos de segurança: mínimo 8 caracteres, incluindo letras
+     * maiúsculas, minúsculas e números.
      * 
-     * @param RegisterRequest $request
-     * @return JsonResponse
+     * **Rate Limit:** 5 tentativas por minuto
      * 
-     * @response 201 {
+     * @unauthenticated
+     * 
+     * @bodyParam name string required Nome completo do usuário. Example: João Silva
+     * @bodyParam email string required Email único do usuário. Example: joao@example.com
+     * @bodyParam password string required Senha do usuário (mínimo 8 caracteres, maiúsculas, minúsculas e números). Example: Password123!
+     * @bodyParam password_confirmation string required Confirmação da senha (deve ser igual a password). Example: Password123!
+     * 
+     * @response 201 scenario="Usuário criado com sucesso" {
      *   "success": true,
-     *   "message": "Usuário registrado com sucesso",
+     *   "message": "Usuário registrado com sucesso.",
      *   "data": {
      *     "user": {
      *       "id": 1,
@@ -47,6 +55,19 @@ class RegisterController extends Controller
      *     "token": "1|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
      *   },
      *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "email": ["Este email já está cadastrado."],
+     *     "password": ["A senha deve ter no mínimo 8 caracteres."]
+     *   }
+     * }
+     * 
+     * @response 429 scenario="Rate limit excedido" {
+     *   "message": "Too Many Attempts."
      * }
      */
     public function __invoke(RegisterRequest $request): JsonResponse

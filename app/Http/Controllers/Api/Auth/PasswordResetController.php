@@ -7,12 +7,13 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Controller para recuperação de senha
  * 
- * @group Autenticação
+ * @group Recuperação de Senha
  */
 class PasswordResetController extends Controller
 {
@@ -25,18 +26,35 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Solicita reset de senha
+     * Solicitar reset de senha
      * 
-     * Envia um email com token para recuperação de senha.
+     * Envia um email com token de recuperação para o endereço fornecido.
+     * Por segurança, sempre retorna sucesso mesmo se o email não estiver cadastrado,
+     * prevenindo enumeração de emails.
      * 
-     * @param ForgotPasswordRequest $request
-     * @return JsonResponse
+     * **Rate Limit:** 5 tentativas por minuto
      * 
-     * @response 200 {
+     * @unauthenticated
+     * 
+     * @bodyParam email string required Email do usuário que deseja recuperar a senha. Example: user@example.com
+     * 
+     * @response 200 scenario="Email enviado (ou não cadastrado)" {
      *   "success": true,
-     *   "message": "Link de recuperação enviado com sucesso",
+     *   "message": "Se o email estiver cadastrado, você receberá um link de recuperação.",
      *   "data": null,
      *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "email": ["O campo email é obrigatório."]
+     *   }
+     * }
+     * 
+     * @response 429 scenario="Rate limit excedido" {
+     *   "message": "Too Many Attempts."
      * }
      */
     public function forgot(ForgotPasswordRequest $request): JsonResponse
@@ -69,17 +87,42 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Valida o token de recuperação de senha
+     * Validar token de recuperação
      * 
-     * Verifica se o token fornecido é válido antes de permitir o reset.
+     * Verifica se o token de recuperação fornecido é válido e ainda não expirou.
+     * Use este endpoint antes de permitir que o usuário redefina a senha.
      * 
-     * @param \Illuminate\Http\Request $request
-     * @return JsonResponse
+     * **Rate Limit:** 10 tentativas por minuto
      * 
-     * @bodyParam email string required Email do usuário
-     * @bodyParam token string required Token de recuperação
+     * @unauthenticated
+     * 
+     * @bodyParam email string required Email do usuário. Example: user@example.com
+     * @bodyParam token string required Token de recuperação recebido por email. Example: abc123def456
+     * 
+     * @response 200 scenario="Token válido" {
+     *   "success": true,
+     *   "message": "Token válido.",
+     *   "data": null,
+     *   "errors": []
+     * }
+     * 
+     * @response 400 scenario="Token inválido ou expirado" {
+     *   "success": false,
+     *   "message": "Token inválido ou expirado.",
+     *   "data": null,
+     *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "email": ["O campo email é obrigatório."],
+     *     "token": ["O token é obrigatório."]
+     *   }
+     * }
      */
-    public function validateToken(\Illuminate\Http\Request $request): JsonResponse
+    public function validateToken(Request $request): JsonResponse
     {
         try {
             $request->validate([
@@ -129,23 +172,44 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Redefine a senha usando o token
+     * Redefinir senha
      * 
-     * @param ResetPasswordRequest $request
-     * @return JsonResponse
+     * Redefine a senha do usuário usando o token de recuperação válido.
+     * Após redefinir a senha, todos os tokens do usuário são revogados por segurança.
      * 
-     * @response 200 {
+     * **Rate Limit:** 5 tentativas por minuto
+     * 
+     * @unauthenticated
+     * 
+     * @bodyParam email string required Email do usuário. Example: user@example.com
+     * @bodyParam token string required Token de recuperação recebido por email. Example: abc123def456
+     * @bodyParam password string required Nova senha (mínimo 8 caracteres, maiúsculas, minúsculas e números). Example: NewPassword123!
+     * @bodyParam password_confirmation string required Confirmação da nova senha. Example: NewPassword123!
+     * 
+     * @response 200 scenario="Senha redefinida com sucesso" {
      *   "success": true,
-     *   "message": "Senha redefinida com sucesso",
+     *   "message": "Senha redefinida com sucesso.",
      *   "data": null,
      *   "errors": []
      * }
      * 
-     * @response 400 {
+     * @response 400 scenario="Token inválido ou expirado" {
      *   "success": false,
-     *   "message": "Token inválido ou expirado",
+     *   "message": "Token inválido ou expirado.",
      *   "data": null,
      *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "password": ["A senha deve ter no mínimo 8 caracteres."]
+     *   }
+     * }
+     * 
+     * @response 429 scenario="Rate limit excedido" {
+     *   "message": "Too Many Attempts."
      * }
      */
     public function reset(ResetPasswordRequest $request): JsonResponse
@@ -190,4 +254,3 @@ class PasswordResetController extends Controller
         }
     }
 }
-

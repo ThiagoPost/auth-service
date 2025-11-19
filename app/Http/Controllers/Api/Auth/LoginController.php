@@ -25,32 +25,55 @@ class LoginController extends Controller
     }
 
     /**
-     * Autentica um usuário e retorna token de acesso
+     * Login de usuário
      * 
-     * Realiza login com email e senha, retornando um token Sanctum válido por 24 horas.
+     * Autentica um usuário com email e senha, retornando um token de acesso Sanctum válido por 24 horas.
      * 
-     * @param LoginRequest $request
-     * @return JsonResponse
+     * Este endpoint permite que usuários façam login no sistema. Após autenticação bem-sucedida,
+     * um token Bearer é retornado e deve ser usado em requisições subsequentes que requerem autenticação.
      * 
-     * @response 200 {
+     * **Rate Limit:** 5 tentativas por minuto
+     * 
+     * @unauthenticated
+     * 
+     * @bodyParam email string required Email do usuário cadastrado. Example: user@example.com
+     * @bodyParam password string required Senha do usuário (mínimo 8 caracteres). Example: Password123!
+     * 
+     * @response 200 scenario="Login bem-sucedido" {
      *   "success": true,
-     *   "message": "Login realizado com sucesso",
+     *   "message": "Login realizado com sucesso.",
      *   "data": {
      *     "user": {
      *       "id": 1,
      *       "name": "João Silva",
-     *       "email": "joao@example.com"
+     *       "email": "joao@example.com",
+     *       "email_verified_at": null,
+     *       "created_at": "2024-01-01T00:00:00.000000Z",
+     *       "updated_at": "2024-01-01T00:00:00.000000Z"
      *     },
      *     "token": "1|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
      *   },
      *   "errors": []
      * }
      * 
-     * @response 401 {
+     * @response 401 scenario="Credenciais inválidas" {
      *   "success": false,
-     *   "message": "Credenciais inválidas",
+     *   "message": "Credenciais inválidas.",
      *   "data": null,
      *   "errors": []
+     * }
+     * 
+     * @response 422 scenario="Validação falhou" {
+     *   "success": false,
+     *   "message": "Dados de validação inválidos.",
+     *   "errors": {
+     *     "email": ["O campo email é obrigatório."],
+     *     "password": ["O campo senha é obrigatório."]
+     *   }
+     * }
+     * 
+     * @response 429 scenario="Rate limit excedido" {
+     *   "message": "Too Many Attempts."
      * }
      */
     public function __invoke(LoginRequest $request): JsonResponse

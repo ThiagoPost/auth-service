@@ -24,21 +24,27 @@ class RefreshTokenController extends Controller
     }
 
     /**
-     * Renova o token de acesso do usuário
+     * Renovar token de acesso
      * 
-     * Revoga o token atual e cria um novo token válido por 24 horas.
-     * 
-     * @param Request $request
-     * @return JsonResponse
+     * Revoga o token atual e cria um novo token de acesso válido por 24 horas.
+     * Útil quando o token está próximo de expirar e você deseja estender a sessão
+     * sem precisar fazer login novamente.
      * 
      * @authenticated
      * 
-     * @response 200 {
+     * @response 200 scenario="Token renovado com sucesso" {
      *   "success": true,
-     *   "message": "Token renovado com sucesso",
+     *   "message": "Token renovado com sucesso.",
      *   "data": {
      *     "token": "2|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
      *   },
+     *   "errors": []
+     * }
+     * 
+     * @response 401 scenario="Não autenticado" {
+     *   "success": false,
+     *   "message": "Usuário não autenticado.",
+     *   "data": null,
      *   "errors": []
      * }
      */
@@ -81,4 +87,3 @@ class RefreshTokenController extends Controller
         }
     }
 }
-

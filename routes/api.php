@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Auth\PasswordResetController;
 use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\Auth\RefreshTokenController;
 use App\Http\Controllers\Api\Auth\RegisterController;
+use App\Http\Controllers\Api\Auth\TokenValidationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,6 +38,13 @@ Route::prefix('auth')->group(function () {
 
     Route::post('/password/reset', [PasswordResetController::class, 'reset'])
         ->middleware('throttle:5,1'); // 5 tentativas por minuto
+
+    // Validação de tokens para outros serviços
+    Route::get('/validate', [TokenValidationController::class, 'validate'])
+        ->middleware('throttle:60,1'); // 60 requisições por minuto
+    
+    Route::get('/user', [TokenValidationController::class, 'user'])
+        ->middleware('throttle:60,1'); // 60 requisições por minuto
 });
 
 // Rotas protegidas (requerem autenticação)
