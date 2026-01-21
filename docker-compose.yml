@@ -13,9 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      # Porta externa do host para PostgreSQL (alterada para evitar conflito)
-      # Use a variável DB_PORT_HOST no .env para customizar. Padrão: 5434.
-      - "${DB_PORT_HOST:-5434}:5432"
+      - "${DB_PORT:-5433}:5432"
     networks:
       - laravel_network
     healthcheck:
