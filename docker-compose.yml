@@ -4,29 +4,20 @@ services:
     image: postgres:15-alpine
     container_name: laravel_auth_postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_DB: ${DB_DATABASE:-laravel_auth}
       POSTGRES_USER: ${DB_USERNAME:-laravel_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
       PGDATA: /var/lib/postgresql/data/pgdata
-
-    # Porta INTERNA do PostgreSQL
-    command: -p 5433
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-
-    # Porta EXTERNA : Porta INTERNA
     ports:
-      - "5434:5433"
-
+      - "${DB_PORT:-5433}:5432"
     networks:
       - laravel_network
-
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -p 5433 -U ${DB_USERNAME:-laravel_user} -d ${DB_DATABASE:-laravel_auth}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-laravel_user} -d ${DB_DATABASE:-laravel_auth}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,7 +46,7 @@ services:
     environment:
       - DB_CONNECTION=pgsql
       - DB_HOST=postgres
-      - DB_PORT=5433
+      - DB_PORT=5432
       - DB_DATABASE=${DB_DATABASE:-laravel_auth}
       - DB_USERNAME=${DB_USERNAME:-laravel_user}
       - DB_PASSWORD=${DB_PASSWORD:-secret}
